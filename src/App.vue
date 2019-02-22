@@ -13,10 +13,15 @@
             :moveUp='moveUp',
             :moveDn='moveDn'
           )
-      re-section.my-3(@refresh='refreshSections')
+      button.mx-auto.mt-16.h-16.w-16.bg-white.rounded-full.flex.items-center.justify-center.shadow(
+        @click='createSection'
+      )
+        span.text-3x1 +
+      //- re-section.my-3(@refresh='refreshSections')
 </template>
 
 <script>
+import uuidv4 from 'uuid/v4'
 import ReSection from '@/components/ReSection'
 
 export default {
@@ -47,6 +52,22 @@ export default {
           tracks
         }
       })
+    },
+
+    async createSection () {
+      const uuid = `re-sct-${uuidv4()}`
+      const section = {
+        id: uuid,
+        meta: null,
+        tracks: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+      localStorage.setItem(uuid, JSON.stringify(section))
+      const sections = JSON.parse(localStorage.getItem('re-sections') || '  []')
+      sections.push(uuid)
+      localStorage.setItem('re-sections', JSON.stringify(sections))
+      await this.refreshSections()
     },
 
     removeSection (section) {

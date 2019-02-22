@@ -1,13 +1,13 @@
 <template lang='pug'>
   .flex
-    button.outline-none.bg-red-dark.white.p-1.px-3.rounded-full(
+    button.outline-none.bg-red-dark.text-white.rounded-full.w-8.h-8(
       v-if='!recording'
       @click='startRecord'
-    ) .
-    button.outline-none.bg-red-darker.white.p-1.px-3.rounded-full(
+    ) ·
+    button.outline-none.bg-red.animate-recording.text-white.rounded-full.w-8.h-8(
       v-if='recording'
       @click='stopRecord'
-    ) .
+    ) ·
 </template>
 
 <script>
@@ -68,4 +68,13 @@ export default {
 </script>
 
 <style lang='stylus' scoped>
+@keyframes recordingFade {
+  0% { opacity: 1 }
+  50% { opacity: 0.25 }
+  100% { opacity: 1 }
+}
+
+.animate-recording {
+  animation: recordingFade 2.5s infinite;
+}
 </style>

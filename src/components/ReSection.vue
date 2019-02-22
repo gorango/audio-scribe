@@ -1,20 +1,20 @@
 <template lang='pug'>
   div.w-full.flex.border.border-grey.rounded
-    div.flex-auto.border-r.border-grey
+    div.w-16.flex.border-r.border-grey.items-center.justify-center
       template(v-if='data')
         button.block(
           v-if='i > 0'
           @click='moveUp(data.id, i)'
-        ) Up
+        ) ↑
         button.block(
           v-if='i < l - 1'
           @click='moveDn(data.id, i)'
-        ) Dn
+        ) ↓
     div(class='w-2/5').border-r.border-grey.relative
       textarea.w-full.h-full.bg-grey-lightest.resize-none.outline-none.p-2(
         placholder='Placeholder',
         v-model='section.meta',
-        @blur='saveSection'
+        @input='saveSection'
       )
     div(class='w-2/5')
       //- TRACKS
@@ -25,17 +25,18 @@
               :key='track.id',
               :data='track'
             )
-            button.mx-2(@click='removeTrack(track.id)') x
+            button.mx-2.opacity-50(@click='removeTrack(track.id)') x
       //- RECORDER
-    div.flex-auto.border-l.border-grey.relative
-      template(v-if='data')
-        button(
-          @click='$emit("remove")'
-        ) Drop
-      re-recorder.absolute.pin-r.pin-t.-mr-4(
-        style='top:50%; transform: translateY(-50%)'
-        @newTrack='addTrack'
-      )
+    div.w-24.border-l.border-grey.relative.flex.items-center.justify-center
+      div.flex
+        template(v-if='data')
+          button.w-8.h-8.rounded-full.flex.items-center.justify-center(
+            @click='$emit("remove")'
+          )
+            span.opacity-50 x
+        re-recorder.ml-2(
+          @newTrack='addTrack'
+        )
 </template>
 
 <script>

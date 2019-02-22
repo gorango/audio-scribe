@@ -1,25 +1,26 @@
 <template lang="pug">
   .w-full
     template(v-if='data')
-      .w-full.flex.relative.rounded.overflow-hidden
+      .w-full.flex.relative.rounded.overflow-hidden.px-2
         .progress.absolute.pin.bg-red.z-0.opacity-25(
           :style='{width: `${progress}%`}'
         )
-        .z-10.flex.w-full
+        .z-10.flex.w-full.items-center
           audio(
             :src='src',
             :ref='data.id'
           )
-          button(
-            v-if='!playing',
-            @click='play'
-          ) Play
-          button(
-            v-if='playing',
-            @click='pause'
-          ) Pause
+          .w-6.flex.items-center.justify-center
+            button.pb-1(
+              v-if='!playing',
+              @click='play'
+            ) ▷
+            button.pb-1(
+              v-if='playing',
+              @click='pause'
+            ) ▯▯
           .flex-auto
-          span {{duration}}
+          span {{timestamp}}
 </template>
 
 <script>
@@ -27,6 +28,7 @@ import getDuration from 'get-blob-duration'
 
 import baseToBlob from '@/utils/base-to-blob'
 import timeout from '@/utils/timeout'
+import minsToStamp from '@/utils/mins-to-timestamp'
 // import getDuration from '@/utils/get-duration'
 
 export default {
@@ -37,6 +39,7 @@ export default {
   data: () => ({
     src: null,
     duration: null,
+    timestamp: null,
     playing: false,
     progress: 0
   }),
@@ -46,6 +49,7 @@ export default {
     const contentType = 'audio/webm;codecs=opus'
     const blob = baseToBlob(baseData, contentType)
     this.duration = await getDuration(blob)
+    this.timestamp = minsToStamp(this.duration / 60)
     this.src = URL.createObjectURL(blob)
   },
 
@@ -74,7 +78,9 @@ export default {
     stop () {
       const el = this.$refs[this.data.id]
       el.removeEventListener('timeupdate', this.handleProgress)
-      this.progress = 100
+      if (this.progress > 90) {
+        this.progress = 100
+      }
       if (this.playing) {
         this.pause()
         this.$refs[this.data.id].currentTime = 0
