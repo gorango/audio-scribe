@@ -1,124 +1,75 @@
 <template lang="pug">
-  div
-    .flex.items-center.my-4
-      div
-        button.bg-blue.text-white.rounded-lg.px-3.py-2.mr-2(
-          @click='playPause'
-        ) Play/Pause
-      div
-        button.bg-blue.text-white.rounded-lg.px-3.py-2.mr-2(
-          @click='removeFile'
-        ) x
-      .mx-3
-      .waveform.w-full.relative(:id='`waveform-${i}`')
+  .w-full
+    template(v-if='data')
+      .w-full.flex
+        audio(
+          :src='src',
+          :ref='data.id'
+        )
+        button(
+          v-if='!playing',
+          @click='play'
+        ) Play
+        button(
+          v-if='playing',
+          @click='pause'
+        ) Pause
+        .flex-auto
+        span {{duration}}
 </template>
 
 <script>
-import WaveSurfer from 'wavesurfer.js'
-import getBlobDuration from 'get-blob-duration'
+import getDuration from 'get-blob-duration'
 
-import CursorPlugin from '@/utils/wavesurfer.cursor'
+import baseToBlob from '@/utils/base-to-blob'
+import timeout from '@/utils/timeout'
+// import getDuration from '@/utils/get-duration'
 
 export default {
   props: {
-    file: {
-      required: true
-    },
-    i: {
-      type: Number,
-      default: 0
-    }
+    data: Object
   },
 
   data: () => ({
-    wavesurfer: null,
+    src: null,
+    duration: null,
     playing: false
   }),
 
-  async mounted () {
-    const containerId = `#waveform-${this.i}`
+  computed: {
+    ref () { return `audio-${this.sectionId}` }
+  },
 
-    this.wavesurfer = WaveSurfer.create({
-      container: containerId,
-      backend: 'MediaElement',
-      waveColor: '#2196F3',
-      progressColor: '#607D8B',
-      cursorColor: '#607D8B',
-      barWidth: 4,
-      scrollParent: false,
-      hideScrollbar: true,
-      height: 64,
-      plugins: [
-        CursorPlugin.create({
-          showTime: true,
-          // hideOnBlur: false,
-          // width: '2px',
-          customShowTimeStyle: {
-            top: 0,
-            marginLeft: '8px',
-            marginTop: '4px',
-            fontSize: '14px'
-          }
-        })
-      ]
-    })
-    // this.wavesurfer.init()
-    this.wavesurfer.on('ready', () => this.wavesurfer.play())
-    // this.wavesurfer.load(require('@/assets/an-invitation-to-dance.mp3'))
-    // console.log(this.file)
-    const b64Data = localStorage[this.file].split(',').slice(1).join()
-    if (!b64Data) return
-    // console.log(b64Data)
+  async mounted () {
+    const baseData = this.data.src.split(',').slice(1).join()
     const contentType = 'audio/webm;codecs=opus'
-    const blob = b64toBlob(b64Data, contentType)
-    const duration = await getBlobDuration(blob)
-    console.log(duration)
-    // const blob = await fetch(url).then(async res => res.blob())
-    // blob.type = 'audio/webm;codecs=opus'
-    const src = URL.createObjectURL(blob)
-    let el = document.createElement('audio')
-    el.setAttribute('id', containerId)
-    el.src = src
-    this.wavesurfer.load(el, null, true, duration)
-    el = null
+    const blob = baseToBlob(baseData, contentType)
+    this.duration = await getDuration(blob)
+    this.src = URL.createObjectURL(blob)
   },
 
   methods: {
-    playPause () {
-      this.playing
-        ? this.wavesurfer.pause()
-        : this.wavesurfer.play()
-      this.playing = !this.playing
+    async play (id, i) {
+      this.playing = true
+      const el = this.$refs[this.data.id]
+      el.play()
+      const duration = (this.duration - el.currentTime) * 1000
+      await timeout(duration)
+      this.stop()
     },
 
-    removeFile () {
-      localStorage.removeItem(this.file)
-      this.$emit('removed', this.file)
+    pause (id, i) {
+      this.playing = false
+      const el = this.$refs[this.data.id]
+      el.pause()
+    },
+
+    stop () {
+      if (this.playing) {
+        this.pause()
+        this.$refs[this.data.id].currentTime = 0
+      }
     }
   }
-}
-
-function b64toBlob (b64Data, contentType, sliceSize) {
-  contentType = contentType || ''
-  sliceSize = sliceSize || 512
-
-  let byteCharacters = atob(b64Data)
-  let byteArrays = []
-
-  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-    let slice = byteCharacters.slice(offset, offset + sliceSize)
-
-    let byteNumbers = new Array(slice.length)
-    for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i)
-    }
-
-    let byteArray = new Uint8Array(byteNumbers)
-
-    byteArrays.push(byteArray)
-  }
-
-  let blob = new Blob(byteArrays, { type: contentType })
-  return blob
 }
 </script>
