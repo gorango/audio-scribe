@@ -1,21 +1,25 @@
 <template lang="pug">
   .w-full
     template(v-if='data')
-      .w-full.flex
-        audio(
-          :src='src',
-          :ref='data.id'
+      .w-full.flex.relative.rounded.overflow-hidden
+        .progress.absolute.pin.bg-red.z-0.opacity-25(
+          :style='{width: `${progress}%`}'
         )
-        button(
-          v-if='!playing',
-          @click='play'
-        ) Play
-        button(
-          v-if='playing',
-          @click='pause'
-        ) Pause
-        .flex-auto
-        span {{duration}}
+        .z-10.flex.w-full
+          audio(
+            :src='src',
+            :ref='data.id'
+          )
+          button(
+            v-if='!playing',
+            @click='play'
+          ) Play
+          button(
+            v-if='playing',
+            @click='pause'
+          ) Pause
+          .flex-auto
+          span {{duration}}
 </template>
 
 <script>
@@ -33,12 +37,9 @@ export default {
   data: () => ({
     src: null,
     duration: null,
-    playing: false
+    playing: false,
+    progress: 0
   }),
-
-  computed: {
-    ref () { return `audio-${this.sectionId}` }
-  },
 
   async mounted () {
     const baseData = this.data.src.split(',').slice(1).join()
@@ -54,8 +55,14 @@ export default {
       const el = this.$refs[this.data.id]
       el.play()
       const duration = (this.duration - el.currentTime) * 1000
+      el.addEventListener('timeupdate', this.handleProgress)
       await timeout(duration)
       this.stop()
+    },
+
+    handleProgress ({ timeStamp }) {
+      const el = this.$refs[this.data.id]
+      this.progress = Math.round(el.currentTime / this.duration * 100)
     },
 
     pause (id, i) {
@@ -65,6 +72,9 @@ export default {
     },
 
     stop () {
+      const el = this.$refs[this.data.id]
+      el.removeEventListener('timeupdate', this.handleProgress)
+      this.progress = 100
       if (this.playing) {
         this.pause()
         this.$refs[this.data.id].currentTime = 0
