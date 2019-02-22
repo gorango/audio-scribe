@@ -29,7 +29,6 @@ import getDuration from 'get-blob-duration'
 import baseToBlob from '@/utils/base-to-blob'
 import timeout from '@/utils/timeout'
 import minsToStamp from '@/utils/mins-to-timestamp'
-// import getDuration from '@/utils/get-duration'
 
 export default {
   props: {

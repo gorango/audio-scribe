@@ -17,7 +17,6 @@
         @click='createSection'
       )
         span.text-3x1 +
-      //- re-section.my-3(@refresh='refreshSections')
 </template>
 
 <script>
@@ -71,9 +70,6 @@ export default {
     },
 
     removeSection (section) {
-      // this.sections = this.sections.filter(({id}) => id !== section.id)
-      // this.refreshSections()
-      // console.log(this.sections)
       let localSections = JSON.parse(localStorage['re-sections'] || '[]')
       let targetSection = JSON.parse(localStorage[section.id])
       const { tracks } = targetSection
